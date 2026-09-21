@@ -32,11 +32,14 @@ reporting-mcp/
 │   ├── 08-VERIFICATION-ET-PREUVES.md       ce qui a été vérifié localement, et pas plus
 │   └── 09-ETAT-PREPARE-VERIFIE-ACTIVE.md   tableau récapitulatif préparé/vérifié/activé
 ├── server/                                 connecteur MCP (Node.js, ESM, lecture seule)
-│   ├── src/                                config, auth, rate limiting, client API, calcul
-│   ├── tests/                              tests automatisés sur données fictives (13/13 OK)
+│   ├── src/                                config, auth OAuth réelle (jose/JWKS), rate limiting, client API, calcul
+│   ├── tests/                              tests automatisés sur données fictives (20/20 OK)
+│   ├── Dockerfile / docker-compose.yml     déploiement conteneurisé (build non testé, pas de Docker ici)
 │   └── .env.example                        variables attendues, aucun secret réel
 └── fallback-n8n/                           repli si la planification native Claude
                                              ne convient pas au connecteur MCP
+
+.github/workflows/reporting-mcp-tests.yml   CI : relance npm test à chaque push/PR
 ```
 
 ## Ce que ce connecteur fait
@@ -53,21 +56,28 @@ reporting-mcp/
 - N'accepte aucune route non vérifiée en production (`capabilityMap.js` refuse d'appeler
   une route tant qu'elle n'est pas explicitement confirmée par un opérateur).
 
+- La vérification de signature OAuth (`oauthVerifier.js`, via `jose`/JWKS) est une
+  implémentation réelle, testée hors ligne avec une paire de clés locale — mais elle n'a
+  jamais parlé à un vrai serveur d'autorisation.
+
 ## Ce que ce connecteur ne fait pas (encore)
 
 - Il ne tourne pas en production : aucun hébergement, aucun compte API Perfex, aucune
   autorisation OAuth réelle n'a été créé.
 - Il n'est pas déclaré comme connecteur dans le compte Claude `ani.herman@gmail.com`.
 - Aucun rapport n'a été envoyé à qui que ce soit.
+- L'image Docker n'a jamais été construite ni lancée (aucun démon Docker disponible dans
+  le bac à sable de cette session) — le Dockerfile est prêt mais pas encore validé.
 
 ## Démarrage rapide (vérification locale uniquement, sans réseau)
 
 ```bash
 cd reporting-mcp/server
 npm install
-npm test        # 13/13 tests attendus, données fictives uniquement
+npm test        # 20/20 tests attendus, données fictives uniquement
 ```
 
-Pour aller plus loin (déploiement réel), suivre `docs/06-DEPLOIEMENT-ROLLBACK.md` — cette
-procédure nécessite des accès (admin Perfex, hébergement, réglages du compte Claude) que
-je n'ai pas depuis ce dépôt.
+Pour aller plus loin (déploiement réel), suivre `docs/06-DEPLOIEMENT-ROLLBACK.md` et la
+checklist de `docs/09-ETAT-PREPARE-VERIFIE-ACTIVE.md` ("Ce qu'il faut concrètement pour
+que je puisse activer un déploiement réel") — cette procédure nécessite des accès (admin
+Perfex, hébergement, réglages du compte Claude) que je n'ai pas depuis ce dépôt.

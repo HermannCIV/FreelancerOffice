@@ -16,6 +16,15 @@
   moment du déploiement réel**, car le détail exact du flux supporté par les connecteurs
   personnalisés peut évoluer — je ne fige pas cette hypothèse comme un fait, voir
   `auth.js`.
+- Côté vérification, `server/src/oauthVerifier.js` implémente réellement le contrôle de
+  signature JWT via JWKS (bibliothèque `jose`, `jwtVerify` + `createRemoteJWKSet`),
+  contrôle `iss`/`aud`/`exp`. Testé hors ligne avec une paire de clés locale
+  (`server/tests/oauth.test.js`) : jeton valide accepté, jeton signé par une autre clé
+  rejeté, jeton expiré rejeté, mauvaise audience rejetée. Le nom de la revendication
+  portant le périmètre société (`OAUTH_TENANT_CLAIM`) reste configurable car non
+  standardisé par une RFC — à confirmer contre le fournisseur d'autorisation réellement
+  choisi, ce n'est pas une route ou un champ inventé mais un point de configuration
+  explicite qui doit rester `unverified` tant que non confirmé.
 - Jetons d'accès courts (recommandé ≤ 1 h), jetons de rafraîchissement révocables
   individuellement.
 - Un jeton = un scope = un périmètre société, résolu et figé côté serveur d'autorisation,

@@ -15,13 +15,25 @@ disposant des accès nécessaires.
 
 ## Déploiement
 
-1. **Provisionner l'hôte** : machine ou conteneur dédié, Node.js LTS, pare-feu limitant
-   les connexions entrantes au port HTTPS du service et les sortantes à l'API Perfex
-   + serveur d'autorisation OAuth.
-2. **Copier `server/`** sur l'hôte, `npm ci --omit=dev`.
+1. **Provisionner l'hôte** : machine ou conteneur dédié, pare-feu limitant les connexions
+   entrantes au port HTTPS du service et les sortantes à l'API Perfex + serveur
+   d'autorisation OAuth.
+2. **Construire et lancer le service**, deux options équivalentes :
+   - *Sans conteneur* : copier `server/` sur l'hôte, `npm ci --omit=dev`, lancer
+     `npm run start` derrière un reverse proxy TLS ;
+   - *Conteneur* : `docker compose build && docker compose up -d` depuis `server/`
+     (voir `Dockerfile`/`docker-compose.yml`) — l'image tourne en utilisateur non-root,
+     système de fichiers en lecture seule, et écoute en HTTP en clair sur
+     `127.0.0.1:8787` uniquement : un reverse proxy TLS doit être placé devant, il n'est
+     pas fourni ici pour rester indépendant de l'hébergeur choisi. **Le build de cette
+     image n'a pas pu être exécuté depuis cette session** (aucun démon Docker
+     disponible dans le bac à sable) : à valider par l'opérateur avant un premier usage.
 3. **Renseigner les secrets** dans le gestionnaire de secrets de la plateforme
    d'hébergement (jamais dans un fichier commité) : voir `server/.env.example` pour la
-   liste exhaustive des variables attendues, aucune valeur réelle n'y figure.
+   liste exhaustive des variables attendues, aucune valeur réelle n'y figure. Les 3
+   variables `OAUTH_ISSUER_URL`/`OAUTH_AUDIENCE`/`OAUTH_JWKS_URL` sont désormais
+   obligatoires au démarrage (la vérification JWT réelle via JWKS est implémentée,
+   voir `docs/05-SECURITE.md`) : le service refuse de démarrer sans elles.
 4. **Vérifier `capabilityMap.js`** : chaque route utilisée doit être passée à
    `verified: true` seulement après un test manuel réussi de cette route précise contre
    l'API réelle (méthode, champs, pagination confirmés).

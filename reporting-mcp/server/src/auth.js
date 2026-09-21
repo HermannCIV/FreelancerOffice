@@ -1,12 +1,11 @@
 // Validation du jeton OAuth émis pour Claude. Résout un périmètre société figé côté
 // serveur — jamais négocié par l'appelant (voir docs/02-MATRICE-DROITS.md).
 //
-// NOTE D'HONNÊTETÉ : la vérification de signature JWT contre le JWKS de l'émetteur n'est
-// volontairement PAS implémentée en dur ici avec une bibliothèque figée, car le flux
-// OAuth exact supporté par les connecteurs personnalisés Claude doit être confirmé avant
-// activation (voir docs/05-SECURITE.md). Cette fonction définit le CONTRAT attendu
-// (scope, périmètre, expiration) que l'implémentation de vérification de signature devra
-// respecter une fois le fournisseur d'autorisation choisi.
+// La vérification de signature JWT (oauthVerifier.js, via JWKS) est injectée ici en tant
+// que `verifyToken` : ce fichier définit le CONTRAT (scope, périmètre, expiration) et
+// traduit tout échec — signature invalide, jeton expiré, émetteur/audience incorrects,
+// mais aussi les erreurs de contrat ci-dessous — en `AuthError` (401), jamais en erreur
+// serveur générique (500), pour ne pas fuiter de détail interne côté client.
 
 export class AuthError extends Error {
   constructor(message, code) {
@@ -26,7 +25,12 @@ export function createAuthMiddleware({ verifyToken, requiredScope = 'reporting:r
       throw new AuthError('Jeton manquant.', 'missing_token');
     }
 
-    const claims = await verifyToken(bearerToken);
+    let claims;
+    try {
+      claims = await verifyToken(bearerToken);
+    } catch (error) {
+      throw new AuthError(`Jeton invalide: ${error.message}`, 'invalid_token');
+    }
 
     if (!claims || typeof claims !== 'object') {
       throw new AuthError('Jeton invalide.', 'invalid_token');

@@ -20,7 +20,13 @@ piégeux mentionnés dans la demande :
 
 Résultat de l'exécution consigné dans `server/tests/RESULTATS.md` après exécution réelle
 des tests dans cette session (voir commande et sortie collées telles quelles, sans
-édition).
+édition). Un test supplémentaire (`tests/oauth.test.js`) vérifie la vérification JWT
+réelle (signature, expiration, audience) avec une paire de clés générée localement,
+sans aucun appel réseau — 20/20 tests passent au total après cet ajout.
+
+Un workflow CI (`.github/workflows/reporting-mcp-tests.yml`) relance automatiquement
+cette même suite de tests à chaque push/PR touchant `reporting-mcp/server/`, pour éviter
+une régression silencieuse sur la logique de calcul ou l'authentification.
 
 ## Ce qui n'a PAS été fait depuis cette session (et pourquoi)
 

@@ -12,6 +12,7 @@
     "start": "node src/mcpServer.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "jose": "^6.2.12"
   }
 }

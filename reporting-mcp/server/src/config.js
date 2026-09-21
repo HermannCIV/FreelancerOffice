@@ -38,9 +38,11 @@ export function loadConfig() {
       apiKeyHeaderName: process.env.PERFEX_API_KEY_HEADER_NAME || 'X-Api-Key',
     },
     oauth: {
-      issuerUrl: process.env.OAUTH_ISSUER_URL || '',
+      issuerUrl: requireEnv('OAUTH_ISSUER_URL', { allowEmptyInTest: true }),
       audience: process.env.OAUTH_AUDIENCE || 'reporting-btob',
-      jwksUrl: process.env.OAUTH_JWKS_URL || '',
+      jwksUrl: requireEnv('OAUTH_JWKS_URL', { allowEmptyInTest: true }),
+      tenantClaim: process.env.OAUTH_TENANT_CLAIM || 'tenant_scope_id',
+      scopeClaim: process.env.OAUTH_SCOPE_CLAIM || 'scope',
     },
     tenantScopeId: process.env.TENANT_SCOPE_ID || '',
     limits: {

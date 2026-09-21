@@ -1,0 +1,17 @@
+# Exemple de déploiement conteneurisé. Le service écoute en HTTP en clair sur le réseau
+# interne du conteneur : la terminaison TLS (HTTPS obligatoire, cf. docs/05-SECURITE.md)
+# doit être assurée par un reverse proxy placé devant (Caddy, nginx, le load balancer de
+# la plateforme d'hébergement...), non fourni ici pour rester indépendant du choix
+# d'hébergement réel.
+services:
+  reporting-mcp-btob:
+    build: .
+    image: reporting-mcp-btob:local
+    restart: unless-stopped
+    env_file:
+      - .env # jamais commité ; copier .env.example et renseigner via le gestionnaire de secrets de l'hôte
+    ports:
+      - "127.0.0.1:8787:8787" # exposé uniquement en local ; le reverse proxy TLS s'y connecte
+    read_only: true
+    security_opt:
+      - no-new-privileges:true

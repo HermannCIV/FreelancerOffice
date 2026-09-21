@@ -2,11 +2,11 @@
 // jeu d'outils, tous en lecture seule (aucun handler de mutation n'existe dans ce
 // fichier ni ailleurs dans le service).
 //
-// IMPORTANT : la vérification de signature du jeton OAuth (verifyToken ci-dessous) doit
-// être implémentée avec la bibliothèque JWKS adaptée au fournisseur d'autorisation
-// réellement choisi au déploiement (voir docs/05-SECURITE.md). Le stub fourni ici est
-// volontairement non fonctionnel en production (il lève) pour ne jamais laisser croire
-// à une authentification effective qui ne serait pas branchée.
+// La vérification de signature du jeton OAuth (oauthVerifier.js) est une implémentation
+// réelle (JWKS via `jose`), pas un stub. Le nom de la revendication portant le périmètre
+// société (OAUTH_TENANT_CLAIM) reste configurable car il n'est standardisé par aucune
+// RFC contrairement à iss/aud/exp/scope — à confirmer contre le fournisseur
+// d'autorisation réellement choisi (voir docs/05-SECURITE.md).
 import http from 'node:http';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
@@ -15,6 +15,7 @@ import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprot
 import { loadConfig } from './config.js';
 import { createLogger } from './logger.js';
 import { createAuthMiddleware, AuthError } from './auth.js';
+import { createOAuthVerifier } from './oauthVerifier.js';
 import { createRateLimiter } from './rateLimiter.js';
 import { PerfexClient } from './perfexClient.js';
 
@@ -24,13 +25,6 @@ import { getOutstandingInvoicesToolDefinition, makeGetOutstandingInvoices } from
 import { listOperationsToolDefinition, makeListOperations } from './tools/listOperations.js';
 import { listVouchersToolDefinition, makeListVouchers } from './tools/listVouchers.js';
 import { getIndicatorDefinitionsToolDefinition, makeGetIndicatorDefinitions } from './tools/getIndicatorDefinitions.js';
-
-async function stubVerifyToken() {
-  throw new Error(
-    'Vérification OAuth non branchée : implémentez verifyToken() avec le JWKS du ' +
-    'fournisseur d\'autorisation réel avant tout déploiement (docs/05-SECURITE.md).'
-  );
-}
 
 export function buildToolRegistry({ config, logger, perfexClient }) {
   const deps = { config, logger, perfexClient };
@@ -77,7 +71,8 @@ async function main() {
   const toolRegistry = buildToolRegistry({ config, logger, perfexClient });
   const mcpServer = createMcpServer({ toolRegistry });
 
-  const authenticate = createAuthMiddleware({ verifyToken: stubVerifyToken });
+  const verifyToken = createOAuthVerifier(config.oauth);
+  const authenticate = createAuthMiddleware({ verifyToken });
   const rateLimiter = createRateLimiter({
     perTokenPerMinute: config.limits.rateLimitPerTokenPerMin,
     perIpPerMinute: config.limits.rateLimitPerIpPerMin,
