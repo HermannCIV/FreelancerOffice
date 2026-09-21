@@ -1,0 +1,18 @@
+{
+  "name": "reporting-mcp-btob",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Connecteur MCP en lecture seule pour le reporting gESTION BtoB (Perfex CRM). Aucune route de mutation.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "start": "node src/mcpServer.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "jose": "^6.2.12"
+  }
+}

@@ -1,0 +1,134 @@
+
+> reporting-mcp-btob@0.1.0 test
+> node --test
+
+TAP version 13
+# Subtest: validateDateRange accepte une plage valide dans la limite
+ok 1 - validateDateRange accepte une plage valide dans la limite
+  ---
+  duration_ms: 1.23276
+  type: 'test'
+  ...
+# Subtest: validateDateRange refuse une plage dépassant le maximum (pas de troncature silencieuse)
+ok 2 - validateDateRange refuse une plage dépassant le maximum (pas de troncature silencieuse)
+  ---
+  duration_ms: 0.643339
+  type: 'test'
+  ...
+# Subtest: validateDateRange refuse from > to
+ok 3 - validateDateRange refuse from > to
+  ---
+  duration_ms: 0.230291
+  type: 'test'
+  ...
+# Subtest: validateDateRange refuse un format de date invalide
+ok 4 - validateDateRange refuse un format de date invalide
+  ---
+  duration_ms: 0.256534
+  type: 'test'
+  ...
+# Subtest: createOAuthVerifier accepte un jeton correctement signé et en extrait les claims attendus
+ok 5 - createOAuthVerifier accepte un jeton correctement signé et en extrait les claims attendus
+  ---
+  duration_ms: 20.330441
+  type: 'test'
+  ...
+# Subtest: createOAuthVerifier rejette un jeton signé par une autre clé
+ok 6 - createOAuthVerifier rejette un jeton signé par une autre clé
+  ---
+  duration_ms: 4.96829
+  type: 'test'
+  ...
+# Subtest: createOAuthVerifier rejette un jeton expiré
+ok 7 - createOAuthVerifier rejette un jeton expiré
+  ---
+  duration_ms: 3.836433
+  type: 'test'
+  ...
+# Subtest: createOAuthVerifier rejette une audience incorrecte
+ok 8 - createOAuthVerifier rejette une audience incorrecte
+  ---
+  duration_ms: 3.764394
+  type: 'test'
+  ...
+# Subtest: createAuthMiddleware bout en bout : jeton valide => contexte résolu ; jeton falsifié => AuthError (jamais une exception générique)
+ok 9 - createAuthMiddleware bout en bout : jeton valide => contexte résolu ; jeton falsifié => AuthError (jamais une exception générique)
+  ---
+  duration_ms: 3.903443
+  type: 'test'
+  ...
+# Subtest: createAuthMiddleware refuse un jeton valide mais sans le scope reporting:read requis
+ok 10 - createAuthMiddleware refuse un jeton valide mais sans le scope reporting:read requis
+  ---
+  duration_ms: 6.928586
+  type: 'test'
+  ...
+# Subtest: createAuthMiddleware refuse un jeton valide mais sans périmètre société résolu
+ok 11 - createAuthMiddleware refuse un jeton valide mais sans périmètre société résolu
+  ---
+  duration_ms: 2.060782
+  type: 'test'
+  ...
+# Subtest: fetchAllPages: toutes les pages OK => complete=true et tous les enregistrements présents
+ok 12 - fetchAllPages: toutes les pages OK => complete=true et tous les enregistrements présents
+  ---
+  duration_ms: 1.44408
+  type: 'test'
+  ...
+# Subtest: fetchAllPages: une page échoue => complete=false, jamais une exception qui remonte au total
+ok 13 - fetchAllPages: une page échoue => complete=false, jamais une exception qui remonte au total
+  ---
+  duration_ms: 0.345227
+  type: 'test'
+  ...
+# Subtest: fetchAllPages: plafond de pages atteint alors qu'il reste des données => complete=false
+ok 14 - fetchAllPages: plafond de pages atteint alors qu'il reste des données => complete=false
+  ---
+  duration_ms: 0.320945
+  type: 'test'
+  ...
+# Subtest: fetchAllPages: aucune donnée mais hasMore=false dès la première page => complete=true, 0 enregistrement
+ok 15 - fetchAllPages: aucune donnée mais hasMore=false dès la première page => complete=true, 0 enregistrement
+  ---
+  duration_ms: 0.251588
+  type: 'test'
+  ...
+# Subtest: aggregateInvoices calcule HT/TTC/paiements/impayés de façon déterministe
+ok 16 - aggregateInvoices calcule HT/TTC/paiements/impayés de façon déterministe
+  ---
+  duration_ms: 1.30077
+  type: 'test'
+  ...
+# Subtest: aggregateInvoices exclut une devise différente et le signale en avertissement, jamais en conversion silencieuse
+ok 17 - aggregateInvoices exclut une devise différente et le signale en avertissement, jamais en conversion silencieuse
+  ---
+  duration_ms: 0.464267
+  type: 'test'
+  ...
+# Subtest: aggregateInvoices sur une liste vide renvoie des zéros réels, pas "indisponible"
+ok 18 - aggregateInvoices sur une liste vide renvoie des zéros réels, pas "indisponible"
+  ---
+  duration_ms: 3.178367
+  type: 'test'
+  ...
+# Subtest: buildIndicatorResponse: couverture complète => status ok avec les valeurs
+ok 19 - buildIndicatorResponse: couverture complète => status ok avec les valeurs
+  ---
+  duration_ms: 0.347325
+  type: 'test'
+  ...
+# Subtest: buildIndicatorResponse: couverture incomplète => status incomplete, values=null, jamais un total partiel
+ok 20 - buildIndicatorResponse: couverture incomplète => status incomplete, values=null, jamais un total partiel
+  ---
+  duration_ms: 0.271989
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 256.040257
