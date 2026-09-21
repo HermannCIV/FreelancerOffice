@@ -1,0 +1,136 @@
+{
+  "name": "Rapport quotidien gESTION BtoB (repli, non actif)",
+  "active": false,
+  "__note": "Squelette a importer dans n8n puis a completer. Aucun secret ni URL reelle ci-dessous. Non teste contre une instance n8n reelle depuis cette session.",
+  "nodes": [
+    {
+      "id": "cron-trigger",
+      "name": "Cron 07:00 Africa/Abidjan",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            { "mode": "everyDay", "hour": 7, "minute": 0 }
+          ]
+        }
+      },
+      "__note": "Configurer le fuseau du workflow (Settings > Timezone) sur Africa/Abidjan, pas seulement l'heure du nœud."
+    },
+    {
+      "id": "get-status",
+      "name": "GET /tools/get_status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.REPORTING_SERVICE_BASE_URL}}/tools/get_status",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth"
+      },
+      "credentials": {
+        "httpBearerAuth": { "id": "TO_CREATE", "name": "reporting-service-readonly" }
+      }
+    },
+    {
+      "id": "get-daily-kpis",
+      "name": "GET /tools/get_daily_kpis (J-1)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 350],
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.REPORTING_SERVICE_BASE_URL}}/tools/get_daily_kpis",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "from", "value": "={{$today.minus({days:1}).toFormat('yyyy-MM-dd')}}" },
+            { "name": "to", "value": "={{$today.minus({days:1}).toFormat('yyyy-MM-dd')}}" }
+          ]
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth"
+      },
+      "credentials": {
+        "httpBearerAuth": { "id": "TO_CREATE", "name": "reporting-service-readonly" }
+      }
+    },
+    {
+      "id": "get-outstanding",
+      "name": "GET /tools/get_outstanding_invoices",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 500],
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.REPORTING_SERVICE_BASE_URL}}/tools/get_outstanding_invoices",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth"
+      },
+      "credentials": {
+        "httpBearerAuth": { "id": "TO_CREATE", "name": "reporting-service-readonly" }
+      }
+    },
+    {
+      "id": "merge-indicators",
+      "name": "Fusionner indicateurs (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 350],
+      "parameters": {
+        "jsCode": "// Assemble les 3 reponses en un seul objet structure avant envoi a OpenAI.\n// Ne jamais construire de total ici : les totaux viennent deja calcules et\n// gates (status ok/incomplete/unavailable) par le service de reporting.\nreturn [{ json: { status: $items('GET /tools/get_status')[0].json, kpis: $items('GET /tools/get_daily_kpis (J-1)')[0].json, outstanding: $items('GET /tools/get_outstanding_invoices')[0].json } }];"
+      }
+    },
+    {
+      "id": "openai-format",
+      "name": "OpenAI - mise en forme du rapport",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [950, 350],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": "TO_CONFIRM_AT_DEPLOYMENT",
+        "options": {},
+        "__note": "Le prompt systeme a utiliser est docs/07-PROMPT-ANALYSE-ET-PLANIFICATION.md (section rapport journalier). Le contenu utilisateur est le JSON produit par le nœud precedent, jamais un texte libre reformule au prealable."
+      },
+      "credentials": {
+        "openAiApi": { "id": "TO_CREATE", "name": "openai-reporting" }
+      }
+    },
+    {
+      "id": "send-email",
+      "name": "Envoi email (destination confirmee uniquement)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1200, 350],
+      "parameters": {
+        "toEmail": "={{$env.REPORT_RECIPIENT_CONFIRMED}}",
+        "subject": "Rapport quotidien gESTION BtoB - {{$today.minus({days:1}).toFormat('yyyy-MM-dd')}}",
+        "__note": "REPORT_RECIPIENT_CONFIRMED doit être défini en variable d'environnement n8n avec l'adresse confirmée explicitement (voir docs/00, point 9). Ne jamais coder une adresse en dur ici."
+      },
+      "credentials": {
+        "smtp": { "id": "TO_CREATE", "name": "smtp-reporting" }
+      }
+    }
+  ],
+  "connections": {
+    "Cron 07:00 Africa/Abidjan": {
+      "main": [[
+        { "node": "GET /tools/get_status", "type": "main", "index": 0 },
+        { "node": "GET /tools/get_daily_kpis (J-1)", "type": "main", "index": 0 },
+        { "node": "GET /tools/get_outstanding_invoices", "type": "main", "index": 0 }
+      ]]
+    },
+    "GET /tools/get_status": { "main": [[{ "node": "Fusionner indicateurs (Code)", "type": "main", "index": 0 }]] },
+    "GET /tools/get_daily_kpis (J-1)": { "main": [[{ "node": "Fusionner indicateurs (Code)", "type": "main", "index": 0 }]] },
+    "GET /tools/get_outstanding_invoices": { "main": [[{ "node": "Fusionner indicateurs (Code)", "type": "main", "index": 0 }]] },
+    "Fusionner indicateurs (Code)": { "main": [[{ "node": "OpenAI - mise en forme du rapport", "type": "main", "index": 0 }]] },
+    "OpenAI - mise en forme du rapport": { "main": [[{ "node": "Envoi email (destination confirmee uniquement)", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "timezone": "Africa/Abidjan"
+  }
+}

@@ -1,0 +1,10 @@
+[
+  { "id": "INV-001", "currency": "XOF", "status": "paid", "amount_ht": 100000, "amount_ttc": 118000, "paid_to_date": 118000 },
+  { "id": "INV-002", "currency": "XOF", "status": "unpaid", "amount_ht": 50000, "amount_ttc": 59000, "paid_to_date": 0 },
+  { "id": "INV-003", "currency": "XOF", "status": "partially_paid", "amount_ht": 200000, "amount_ttc": 236000, "paid_to_date": 100000 },
+  { "id": "INV-004", "currency": "XOF", "status": "cancelled", "amount_ht": 999999, "amount_ttc": 999999, "paid_to_date": 0 },
+  { "id": "INV-005", "currency": "XOF", "status": "draft", "amount_ht": 777777, "amount_ttc": 777777, "paid_to_date": 0 },
+  { "id": "INV-006", "currency": "XOF", "status": "paid", "amount_ht": 80000, "amount_ttc": 94400, "paid_to_date": 94400, "credit_note_amount": 20000 },
+  { "id": "INV-007", "currency": "EUR", "status": "paid", "amount_ht": 1000, "amount_ttc": 1200, "paid_to_date": 1200 },
+  { "id": "INV-008", "currency": "XOF", "status": "overdue", "amount_ttc": 30000, "paid_to_date": 0 }
+]
